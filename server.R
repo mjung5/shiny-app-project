@@ -55,15 +55,16 @@ accessToSubSt <- function(dataset){
 # Data set using accessToSubSt function.
 apartmentData <- accessToSubSt(daegu_real_estate_data_update) %>% as_tibble()
 
-# Overwrite accessToSubwaySTN column with factor version
+# Overwrite columns with factor version
 apartmentData$accessToSubwaySTN <- as.factor(apartmentData$accessToSubwaySTN)
-
 apartmentData$MonthSold <- as.factor(apartmentData$MonthSold)
+
 # Use ordered function on a factor to order the levels
 apartmentData$accessToSubwaySTN <- ordered(apartmentData$accessToSubwaySTN, 
                                            levels = c("Very near", "Near", "Moderate", "Far", "Not available"))
 apartmentData$MonthSold <- ordered(apartmentData$MonthSold, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
+# Subset variables
 numericalVarNames = names(apartmentData %>% dplyr::select(YearBuilt, sqft_size, floor, N_Parkinglot, N_APT, N_manager, 
                                                           N_elevators, N_FacilitiesInApt, N_FacilitiesNearBy, N_SchoolNearBy, sale_price))
 
@@ -95,7 +96,7 @@ shinyServer(function(input, output, session) {
         histogram()
     })
     
-    # Boxplot - sale history
+    # Box plot - sale history
     boxPlot <- function(){
         p <- plot_ly(getApartmentData(), y= ~sale_price, color = I("blue"), alpha = 0.1, boxpoints = "suspectedoutliers")
              boxPlot1 <- if (input$sales == 'YearSold'){
@@ -114,17 +115,17 @@ shinyServer(function(input, output, session) {
       h3(text1)
     })
     
-    # create text info
+    # Create text info
     output$info <- renderText({
     
-      paste("First, looking at the graph by year the aprtment was sold, the apartment prices has been changed very slowly but overally increase over 10 years (2007 to 2017).
-            Interestingly, in 2009 and 2010, overall housing price went down in Korea due to global econimc istability and interest rate increase. 
-            Therefore, we can infer that the apartment prices in Daegu area were also affected by Korean housing market.
-            Second, the month of sale graph shows that apartment prices don't show much of patterns.
-            The lowest median price of apartment was in January, and the higest median price was in July.")
+      paste("First, looking at the graph by year the apartment was sold, the apartment prices have changed very slowly but overal have increased over 10 years (2007 to 2017).
+            Interestingly, in 2009 and 2010, the overall housing price went down in Korea due to the global economic instability and interest rate increases. 
+            Therefore, we can infer that the apartment prices in Daegu area were also affected by the Korean housing market.
+            Second, the month of sale graph shows that apartment prices don't show much of a pattern.
+            The lowest median price of apartments was in January, and the higest median price was in July.")
     })
     
-    
+    # Create summary table
     output$saleSummaryTable <- renderDataTable({
       
       getApartmentData() %>% 
@@ -135,9 +136,6 @@ shinyServer(function(input, output, session) {
           Median = median(sale_price),
           Average = round(mean(sale_price),2))
     })
-    
-    
-    
     
     # Bar plot - Access to subway station
     barPlot <- function(){
@@ -163,7 +161,6 @@ shinyServer(function(input, output, session) {
       DT::datatable(t, caption = "Summary statistics of apartment price by access of subway station")
     })
     
-    
     # Scatter plot - Apartment features and facts
     output$scatterPlot = renderPlotly({
         # Geom_smooth option
@@ -184,10 +181,11 @@ shinyServer(function(input, output, session) {
       h3(text)
     })
 
-    # create reactive data for numerical summary
+    # Create reactive data for numerical summary
     summaryData <- reactive({
       data <- getApartmentData() %>% select(input$numericalVarNames)
-    })    
+    }) 
+    
     # Numerical summary tables for numerical variables for Apartment features option
     output$numSummaryTable <- renderDataTable({
       m <- descr(summaryData(), stats = c("mean", "sd", "min", "q1", "med", "q3", "max", "iqr"), round.digits = st_options("round.digits"), order = "preserve",
@@ -204,7 +202,7 @@ shinyServer(function(input, output, session) {
       corrplot(cor(df_tmp), type = 'lower', diag = FALSE)
     })
     
-    # create text info
+    # Create text info
     output$info1 <- renderText({
       
       paste("We use this correlation plot to find the variables that are highly correlated and avoid including the variables in our model building phase.")
@@ -233,20 +231,18 @@ shinyServer(function(input, output, session) {
     })
 
     # Display predict results on train set
-
-    
     # Multiple regression model
     mlrFit <- reactive({
       set.seed(123)
       mlr.fit <- train(if(!input$interaction){
-        sale_price ~ .
-      }else{
-        sale_price ~ .*.
-      },
-      data = traindata(),
-      method = 'lm',
-      preProcess = c("center", "scale"), 
-      trControl = trainControl(method = "repeatedcv", number = as.numeric(input$numcv), repeats = 3)) 
+                          sale_price ~ .
+                       }else{
+                         sale_price ~ .*.
+                        },
+                 data = traindata(),
+                 method = 'lm',
+                 preProcess = c("center", "scale"), 
+                 trControl = trainControl(method = "repeatedcv", number = as.numeric(input$numcv), repeats = 3)) 
     }) 
     
     observeEvent(input$reportTrain,
@@ -254,7 +250,6 @@ shinyServer(function(input, output, session) {
                    print(mlrFit()$results[2:7])
                  })
                  )
-    
 
     observeEvent(input$reportTrain,
                  output$summaryMLRTable <- renderTable(
@@ -271,7 +266,6 @@ shinyServer(function(input, output, session) {
     # Regression tree model
     rtmFit <- reactive({      
       set.seed(123)
-      # Regression tree model
       rtmFit1 <- train(sale_price ~., 
                           data = traindata(),
                           method = 'rpart', 
@@ -280,39 +274,25 @@ shinyServer(function(input, output, session) {
     })
     
     # Regression Tree - model fit on train
-
     observeEvent(input$reportTrain,
                  output$rtmodelfit <- renderPrint({
                    print(rtmFit())
                  })
     )
-
-
-    
-    #plot tree
-    observeEvent(input$run,
-                 output$treePlot <- renderPlot(
-                   rpart.plot(tree.fit()$finalModel),
-                   height = 250
-                 )
-    )
-    
-    rfp <- reactive({
-           rfp1 <- rpart(sale_price ~., data  = traindata())
+ 
+    rtp <- reactive({
+           rtp1 <- rpart(sale_price ~., data  = traindata())
     })
     observeEvent(input$reportTrain,
                  output$rtplot <- renderPlot(
 
-                   rpart.plot(rfp())
+                   rpart.plot(rtp())
                  ) 
                    )
     
-    
-
     # Random forest model
     rfmFit <- reactive({
       set.seed(123)
-      
       rfmFit1 <-   train(sale_price ~.,
                           data = traindata(),
                           method = 'rf',
@@ -323,18 +303,18 @@ shinyServer(function(input, output, session) {
     })
     
     # Random forest fit on train set
-    
     observeEvent(input$reportTrain,
                  output$rfmodelfit <- renderTable({
                    print(rfmFit()$results)
                  })
     )
     
-rfvar <- reactive({
-    rfvar1 <- randomForest(sale_price ~., data = traindata(), ntree=1000, importance=TRUE)
+    # Variable importance plot for random forest model    
+    rfvar <- reactive({
+        rfvar1 <- randomForest(sale_price ~., data = traindata(), ntree=1000, importance=TRUE)
     
-})
-    # Variable importance plot
+    })
+
     observeEvent(input$reportTrain,
                  output$rfplot <- renderPlot({
  
@@ -343,8 +323,6 @@ rfvar <- reactive({
     )
     
     # Display predict results on test set
-    # Multiple linear regression model on test set
-    
     # Multiple linear regression model on test set
     observeEvent(input$reportTest,
                  output$mlrmodelTest <- renderTable(
@@ -365,10 +343,6 @@ rfvar <- reactive({
                  )
     )
     
-    
-    
- 
-    
     # Make a prediction based on the values of the predictors
     rfmodelTrain <- reactive({
       rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt + accessToSubwaySTN, data = traindata(),
@@ -377,14 +351,15 @@ rfvar <- reactive({
     })
     
     # Make prediction on the four variables
-   observeEvent(input$prediction,
+    observeEvent(input$prediction,
                 output$PredictClick <- renderText({
-                predict(rfmodelTrain(), newdata = data.frame(
-                  sqft_size = isolate(input$sqft_sizeinput),
-                  floor = isolate(input$floorinput),
-                  N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput),
-                  accessToSubwaySTN = isolate(input$subwaySTNinput)
-                ))})
+                  predict(rfmodelTrain(), newdata = data.frame(
+                      sqft_size = isolate(input$sqft_sizeinput),
+                      floor = isolate(input$floorinput),
+                      N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput),
+                      accessToSubwaySTN = isolate(input$subwaySTNinput)
+                  ))
+                })
     )
     
    
@@ -393,6 +368,7 @@ rfvar <- reactive({
     aptData <- reactive({
         data <- select(apartmentData, YearSold, MonthSold, accessToSubway, accessToSubwaySTN, accessToSubway, input$numericalVarNames)
     })
+
     # Data tab
     output$Data <- renderDataTable(datatable(aptData(), options = list(scrollX = T)))
 
