@@ -68,24 +68,22 @@ apartmentData$MonthSold <- ordered(apartmentData$MonthSold, levels = c("Jan", "F
 numericalVarNames = names(apartmentData %>% dplyr::select(YearBuilt, sqft_size, floor, N_Parkinglot, N_APT, N_manager, 
                                                           N_elevators, N_FacilitiesInApt, N_FacilitiesNearBy, N_SchoolNearBy, sale_price))
 
-# Define server logic required to draw a histogram
+# Define server logic 
 shinyServer(function(input, output, session) {
 
     #creates a reactive context for the data set
     getApartmentData <- reactive({
         ApartmentData1 <- apartmentData
     })
-
     
     # creates a reactive context for the data set including only selected variables for the modeling
     newmodelApartmentData <- reactive({
         getmodelapartmentData1 <- apartmentData %>%select(sqft_size,floor,N_FacilitiesInApt,sale_price)
     })
     
-    # create plot
+    # create plots and summary tables
     
-    # Summaries(Graphical and Numerical)   
-    # Histogram - apartment price
+    # Histogram - Apartment price
     histogram <- function(){
 
         h <- plot_ly(getApartmentData(), x= ~sale_price, nbinsx = input$numberofbins ) %>% 
@@ -117,7 +115,6 @@ shinyServer(function(input, output, session) {
     
     # Create text info
     output$info <- renderText({
-    
       paste("First, looking at the graph by year the apartment was sold, the apartment prices have changed very slowly but overal have increased over 10 years (2007 to 2017).
             Interestingly, in 2009 and 2010, the overall housing price went down in Korea due to the global economic instability and interest rate increases. 
             Therefore, we can infer that the apartment prices in Daegu area were also affected by the Korean housing market.
@@ -142,15 +139,12 @@ shinyServer(function(input, output, session) {
         p1 <- getApartmentData() %>% count(accessToSubwaySTN) %>% plot_ly(x = ~accessToSubwaySTN, y = ~n ) %>%
         add_bars()
         } 
-    
     output$barPlot = renderPlotly({
         barPlot()
     })
-    
 
     #create summary table
     output$summarytable <- renderDataTable({
-      
       t <- getApartmentData() %>%
         group_by_at(input$transportation) %>%
         summarise(Min = min(sale_price), 
@@ -168,10 +162,10 @@ shinyServer(function(input, output, session) {
             scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
                 geom_point(color="blue")
             ggplotly(scatterPlot)
-        } else {
-            scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
-                geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
-            ggplotly(scatterPlot)
+        }else{
+              scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
+                  geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
+              ggplotly(scatterPlot)
         }
     })
     
@@ -204,7 +198,6 @@ shinyServer(function(input, output, session) {
     
     # Create text info
     output$info1 <- renderText({
-      
       paste("We use this correlation plot to find the variables that are highly correlated and avoid including the variables in our model building phase.")
     })
     
@@ -223,7 +216,9 @@ shinyServer(function(input, output, session) {
       train_data = modelData()[trainsplit(), ]
     })
     
+    # Test data
     test <- reactive({
+      set.seed(123)
       test = dplyr::setdiff(1:nrow(modelData()), trainsplit())
     })
     testdata <- reactive({
@@ -231,35 +226,40 @@ shinyServer(function(input, output, session) {
     })
 
     # Display predict results on train set
-    # Multiple regression model
+    
+    # Train multiple regression model
     mlrFit <- reactive({
       set.seed(123)
       mlr.fit <- train(if(!input$interaction){
-                          sale_price ~ .
-                       }else{
-                         sale_price ~ .*.
-                        },
-                 data = traindata(),
-                 method = 'lm',
-                 preProcess = c("center", "scale"), 
-                 trControl = trainControl(method = "repeatedcv", number = as.numeric(input$numcv), repeats = 3)) 
+                           sale_price ~ .
+                         }else{
+                            sale_price ~ .*.
+                          },
+                      data = traindata(),
+                      method = 'lm',
+                      preProcess = c("center", "scale"), 
+                      trControl = trainControl(method = "repeatedcv", number = as.numeric(input$numcv), repeats = 3)) 
     }) 
     
+    # Multiple regression model outcome
     observeEvent(input$reportTrain,
                  output$mlrmodelfit <- renderTable({
                    print(mlrFit()$results[2:7])
                  })
-                 )
-
+    )
+    
+    # ANOVA table for multiple linear regression outcome
     observeEvent(input$reportTrain,
                  output$summaryMLRTable <- renderTable(
                   
                  as.data.frame(anova(lm(if(!input$interaction){
-                   sale_price ~ .
-                 }else{
-                   sale_price ~ .*.
-                 },
-                 data = traindata()))
+                                            sale_price ~ .
+                                         }else{
+                                             sale_price ~ .*.
+                                          }, 
+                                        data = traindata()
+                                        )
+                                     )
                  )
     ))
     
@@ -280,14 +280,12 @@ shinyServer(function(input, output, session) {
                  })
     )
  
-    rtp <- reactive({
-           rtp1 <- rpart(sale_price ~., data  = traindata())
-    })
+    # Regression tree plot
     observeEvent(input$reportTrain,
-                 output$rtplot <- renderPlot(
-
-                   rpart.plot(rtp())
-                 ) 
+                 output$rtplot <- renderPlot({
+                   rtp <- rpart(sale_price ~., data  = traindata())
+                 rpart.plot(rtp)
+                 }) 
                    )
     
     # Random forest model
@@ -297,8 +295,8 @@ shinyServer(function(input, output, session) {
                           data = traindata(),
                           method = 'rf',
                           preProcess = c("center", "scale"),
-                          trControl = trainControl("cv", number = as.numeric(input$numcv))
-                          #tuneGrid = data.frame(mtry = seq(1, as.numeric(input$mtry), by = 1))
+                          trControl = trainControl("cv", number = as.numeric(input$numcv)),
+                          tuneGrid = data.frame(mtry = (1:4))
                          ) 
     })
     
@@ -309,16 +307,11 @@ shinyServer(function(input, output, session) {
                  })
     )
     
-    # Variable importance plot for random forest model    
-    rfvar <- reactive({
-        rfvar1 <- randomForest(sale_price ~., data = traindata(), ntree=1000, importance=TRUE)
-    
-    })
-
+    # Variable importance plot
     observeEvent(input$reportTrain,
                  output$rfplot <- renderPlot({
- 
-                 varImpPlot(rfvar())
+                      Variable_Importance <- randomForest(sale_price ~., data = traindata(), ntree=1000, importance=TRUE)
+                 varImpPlot(Variable_Importance)
                  })
     )
     
@@ -343,26 +336,36 @@ shinyServer(function(input, output, session) {
                  )
     )
     
-    # Make a prediction based on the values of the predictors
-    rfmodelTrain <- reactive({
-      rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt + accessToSubwaySTN, data = traindata(),
-                          method = "rf", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = as.numeric(input$numcv)))
-      
+    # Train data for prediction tab
+    predictData <- reactive({
+      predictData <- getApartmentData() %>% select(sale_price, sqft_size, floor, N_FacilitiesInApt, accessToSubwaySTN)
     })
     
+    # Split data into train 
+    trainsplit1 <- reactive({
+      set.seed(123) 
+      train = sample(1:nrow(predictData()), size=nrow(predictData())*input$proportion)
+    })
+    
+    # Reactive train data
+    traindata1 <- reactive({
+      train_data = predictData()[trainsplit1(), ]
+    })
+
     # Make prediction on the four variables
     observeEvent(input$prediction,
                 output$PredictClick <- renderText({
-                  predict(rfmodelTrain(), newdata = data.frame(
+                  rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt, data = traindata1(),
+                                      method = "rf", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 5),tuneGrid = data.frame(mtry = (1:3)) )  
+ 
+                  predict(rfmodelFit, newdata = data.frame(
                       sqft_size = isolate(input$sqft_sizeinput),
                       floor = isolate(input$floorinput),
-                      N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput),
+                      N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput), 
                       accessToSubwaySTN = isolate(input$subwaySTNinput)
                   ))
                 })
     )
-    
-   
     
     # Create reactive data for data tab
     aptData <- reactive({
@@ -371,14 +374,15 @@ shinyServer(function(input, output, session) {
 
     # Data tab
     output$Data <- renderDataTable(datatable(aptData(), options = list(scrollX = T)))
-
-    output$downloadData <- downloadHandler(
-            filename = "apartmentData.csv",
-            content = function(file){
-                write.csv(aptData(), file)
-            })
     
-})
+    # Download
+    output$downloadData <- downloadHandler(
+                                  filename = "apartmentData.csv",
+                                  content = function(file){
+                                                write.csv(aptData(), file)
+                                  }
+                            )
+}) 
 
 
 

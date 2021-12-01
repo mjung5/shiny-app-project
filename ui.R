@@ -68,12 +68,12 @@ apartmentData$MonthSold <- ordered(apartmentData$MonthSold, levels = c("Jan", "F
 numericalVarNames = names(apartmentData %>% dplyr::select(YearBuilt, sqft_size, floor, N_Parkinglot, N_APT, N_manager, 
                                                           N_elevators, N_FacilitiesInApt, N_FacilitiesNearBy, N_SchoolNearBy, sale_price))
 
-# Define UI for application that draws a histogram
+# Define UI 
 shinyUI(dashboardPage(
-    # title
+    # Title
     dashboardHeader(title = "Apartment prices dashboard"),
     
-    # sidebar menu set up
+    # Sidebar menu set up
     dashboardSidebar(width = 130,
         sidebarMenu(
             menuItem("About", tabName = "About"),
@@ -121,7 +121,6 @@ shinyUI(dashboardPage(
                                  tags$li("The Model Fitting tab will enable me to train the data and choose model settings. Also, models will be compared on the test set."),
                                  tags$li("The Prediction tab will allow me to predict the price of apartment for selected predictors.")
                                  ),
-                            #br(),
                             h4("Data"),
                             "In the Data page, I will be able to view the dataset."
                             ),
@@ -129,7 +128,6 @@ shinyUI(dashboardPage(
                             img(src="Daegu_apartment.jpg", height = 350, width=500, align="center")
                         )
                     )
-                    
             ),
             
             tabItem(tabName = "DataExploration",
@@ -143,7 +141,6 @@ shinyUI(dashboardPage(
                                    label = 'Select graph',
                                    choices = list('Apartment prices','Sales history', 'Access to subway station', 'Apartment features', 'Correlation plot')
                               ),
-                              
                             conditionalPanel(condition = "input.graphType == 'Apartment prices'",
                                 selectInput(
                                     inputId = 'price',
@@ -153,7 +150,6 @@ shinyUI(dashboardPage(
                                 sliderInput("numberofbins","Select number of bins for this histogram",
                                             min=0, max=30, step = 1, value = 0)
                               ),
-
                             conditionalPanel(condition = "input.graphType == 'Sales history'",
                                 selectInput(
                                     inputId = 'sales', 
@@ -180,10 +176,7 @@ shinyUI(dashboardPage(
                                     selected = 'sale_price'
                                     ),
                                 checkboxInput('geomline', 'Add a scatter line to the plot.')
-                                             
-                                    )
-
-                            ),
+                            )),
                          
                             mainPanel(
                                 conditionalPanel(condition = "input.graphType == 'Apartment prices'",
@@ -194,28 +187,23 @@ shinyUI(dashboardPage(
                                               plotlyOutput("boxPlot"),
                                               textOutput("info"),
                                               dataTableOutput("saleSummaryTable")
-
                                 ),
                                 conditionalPanel(condition = "input.graphType == 'Access to subway station'",
                                               plotlyOutput("barPlot"),
                                               dataTableOutput('summarytable')
-
                                 ),
                                 conditionalPanel(condition = "input.graphType == 'Apartment features'",
                                               uiOutput("infoNew"),
                                               plotlyOutput("scatterPlot"),
                                               dataTableOutput("numSummaryTable")
-
                                 ),
                                 conditionalPanel(condition = "input.graphType == 'Correlation plot'",
                                               plotOutput("corrplot"),
                                               textOutput("info1")
                                 )
-                             
-                         )
-                         
+                            )
                          ))
-                      ),
+                   ),
            
             tabItem(tabName = 'Modeling',
                     fluidPage(
@@ -261,8 +249,7 @@ shinyUI(dashboardPage(
                                      sidebarLayout(
                                          sidebarPanel(
                                              sliderInput("proportion", "Proportion of data you want to use for training",
-                                                         min = 0.1, max = 0.9, value = 0.5, step = 0.1),
-                                           
+                                                         min = 0.1, max = 0.9, value = 0.8, step = 0.1),
                                              checkboxGroupInput('predictors', h4('Select variables'),
                                                                 choices = list('sqft_size', 
                                                                                'floor',
@@ -275,8 +262,6 @@ shinyUI(dashboardPage(
                                                  choices = c('5','10'),
                                                  selected = '5'),  
                                              checkboxInput('interaction', strong('Option to add interactions for Multiple linear regression model')),
-                                             #sliderInput('mtry', strong('Choose the number of mtry for Random forest model'),
-                                              #           min = 1, max = 3, value = 2, step = 1),
                                              actionButton("reportTrain","Fit models on training data"),
                                              conditionalPanel(condition = "input.reportTrain ==1",
                                                               actionButton("reportTest","Fit models on test data")
@@ -284,7 +269,6 @@ shinyUI(dashboardPage(
                                          ),
 
                                          mainPanel(
-                                           
                                              h4(strong("Multiple Linear Regression model")),
                                              tableOutput("mlrmodelfit"),
                                              h5("ANOVA table from Multiple Linear Regression model"),
@@ -309,7 +293,7 @@ shinyUI(dashboardPage(
                                              h4(strong("Random Forest model on the test set")),
                                              tableOutput("rfmodelTest")
                                          )
-                                     )),
+                                    )),
                             
                             tabPanel("Prediction",
                                      sidebarLayout(
@@ -321,20 +305,19 @@ shinyUI(dashboardPage(
                                              sliderInput("N_FacilitiesInAptinput", "Select a value for N_FacilitiesInApt",
                                                          min=1, max=10, step = 1, value = 3),
                                              selectInput("subwaySTNinput", "Select a value for access to subway station",
-                                                         choices =c("Very near","Near", "Moderate", "Far", "Not available")),
+                                                        choices =c("Very near","Near", "Moderate", "Far", "Not available")),
                                              actionButton("prediction","Predict")  
                                          ),
+                                         
                                          mainPanel(
                                              h3('Make a prediction using the Random forest model.'),
                                              br(),
-                                             h4('Before clicking the', strong('predict'), 'button, make sure that you fit the models in the modeling fitting tab with all 4 predictor variables.'),
-                                             br(),
-                                             h3("The predicted apartment sale price is "), textOutput("PredictClick")
+                                             h3("The predicted apartment sale price is "), box(textOutput("PredictClick"))
                                          )
                                      )
                             )
                         
-            ))
+                   ))
             ),
                       
             tabItem(tabName = 'Data',
@@ -349,18 +332,16 @@ shinyUI(dashboardPage(
                                  choices = numericalVarNames, 
                                  selected = numericalVarNames
                                  ),
-                               
                              downloadButton('downloadData', 'Download data')
                              ),
                     
-                           mainPanel(
-                        dataTableOutput(outputId = 'Data')
+                         mainPanel(
+                             dataTableOutput(outputId = 'Data')
                     )
                 )
-            ))
-))
-
-))
+            )) 
+    )) 
+)) 
 
 
     
