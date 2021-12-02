@@ -109,7 +109,7 @@ shinyServer(function(input, output, session) {
     
     # renderUI() and uiOutput("infoSale")
     output$infoSale <- renderUI({
-      text1 <- paste0("You have selected to veiw bar plots showing how apartment prices change by ", input$sales)
+      text1 <- paste0("You have selected to veiw box plots showing how apartment prices change by ", input$sales)
       h3(text1)
     })
     
@@ -244,7 +244,9 @@ shinyServer(function(input, output, session) {
     # Multiple regression model outcome
     observeEvent(input$reportTrain,
                  output$mlrmodelfit <- renderTable({
+                   withProgress(message = "In progress- Multiple Linear Regression", value = NULL,{
                    print(mlrFit()$results[2:7])
+                   })
                  })
     )
     
@@ -276,7 +278,9 @@ shinyServer(function(input, output, session) {
     # Regression Tree - model fit on train
     observeEvent(input$reportTrain,
                  output$rtmodelfit <- renderPrint({
+                   withProgress(message = "In progress- Regression Tree", value = NULL,{
                    print(rtmFit())
+                   })
                  })
     )
  
@@ -303,7 +307,9 @@ shinyServer(function(input, output, session) {
     # Random forest fit on train set
     observeEvent(input$reportTrain,
                  output$rfmodelfit <- renderTable({
+                   withProgress(message = "In progress- Random Forest", value = NULL,{
                    print(rfmFit()$results)
+                   })
                  })
     )
     
@@ -355,26 +361,30 @@ shinyServer(function(input, output, session) {
     # Make prediction on the four variables
     observeEvent(input$prediction,
                 output$PredictClick <- renderText({
+                  withProgress(message = "In progress", value = NULL,{
                   rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt, data = traindata1(),
-                                      method = "rf", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 5),tuneGrid = data.frame(mtry = (1:3)) )  
- 
+                                      method = "rf", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 5),tuneGrid = data.frame(mtry = (1:4)) )  
+                  
                   predict(rfmodelFit, newdata = data.frame(
                       sqft_size = isolate(input$sqft_sizeinput),
                       floor = isolate(input$floorinput),
                       N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput), 
                       accessToSubwaySTN = isolate(input$subwaySTNinput)
                   ))
+                  }) 
                 })
     )
     
     # Create reactive data for data tab
     aptData <- reactive({
-        data <- select(apartmentData, YearSold, MonthSold, accessToSubway, accessToSubwaySTN, accessToSubway, input$numericalVarNames)
+        data <- apartmentData %>% filter(between(sqft_size, input$sqft_size1[1], input$sqft_size1[2]) & 
+                                           between(YearBuilt, input$YearBuilt1[1], input$YearBuilt1[2])) %>%
+          select(YearSold, MonthSold, accessToSubway, accessToSubwaySTN, accessToSubway, input$numericalVarNames)
     })
 
     # Data tab
-    output$Data <- renderDataTable(datatable(aptData(), options = list(scrollX = T)))
-    
+    #output$Data <- renderDataTable(datatable(aptData(), options = list(scrollX = T)))
+    output$Data <- renderDataTable({aptData()}, options = list(scrollX = '200px'))
     # Download
     output$downloadData <- downloadHandler(
                                   filename = "apartmentData.csv",

@@ -99,7 +99,7 @@ shinyUI(dashboardPage(
                         box(
                             h3("The data and its source"),
                             "This data provide the traded apartment information in one district of South Korea over 10 years and contains 5391 instances with 30 variables.
-                            Particulary, the data provide sales history of houses, accessibility of public transporation, and apartment facts and features. ", 
+                            Particulary, the data provide sales history of apartments, accessibility of public transporation, and apartment facts and features. ", 
                             br(),
                             "The apartment data was obtained from Kaggle.",
                             br(),
@@ -139,9 +139,9 @@ shinyUI(dashboardPage(
                                 selectInput(
                                    inputId = 'graphType',
                                    label = 'Select graph',
-                                   choices = list('Apartment prices','Sales history', 'Access to subway station', 'Apartment features', 'Correlation plot')
+                                   choices = list('Histogram','Box plot', 'Bar plot', 'Scatter plot', 'Correlation plot')
                               ),
-                            conditionalPanel(condition = "input.graphType == 'Apartment prices'",
+                            conditionalPanel(condition = "input.graphType == 'Histogram'",
                                 selectInput(
                                     inputId = 'price',
                                     label = 'Histogram of apartment prices',
@@ -150,19 +150,19 @@ shinyUI(dashboardPage(
                                 sliderInput("numberofbins","Select number of bins for this histogram",
                                             min=0, max=30, step = 1, value = 0)
                               ),
-                            conditionalPanel(condition = "input.graphType == 'Sales history'",
+                            conditionalPanel(condition = "input.graphType == 'Box plot'",
                                 selectInput(
                                     inputId = 'sales', 
                                     label = 'APT was sold in',
                                     choices = list('YearSold', 'MonthSold'))
                                 ),
-                            conditionalPanel(condition = "input.graphType == 'Access to subway station'",
+                            conditionalPanel(condition = "input.graphType == 'Bar plot'",
                                 selectInput(
                                     inputId = 'transportation', 
                                     label = 'closeness to the subway station',
                                     choices = 'accessToSubwaySTN')
                                 ),
-                            conditionalPanel(condition = "input.graphType == 'Apartment features'",
+                            conditionalPanel(condition = "input.graphType == 'Scatter plot'",
                                 selectInput(
                                     inputId = 'featuresX', 
                                     label = 'Choose a variable for your X-axis',
@@ -179,20 +179,20 @@ shinyUI(dashboardPage(
                             )),
                          
                             mainPanel(
-                                conditionalPanel(condition = "input.graphType == 'Apartment prices'",
+                                conditionalPanel(condition = "input.graphType == 'Histogram'",
                                                  plotlyOutput("histogram")
                                 ),
-                                conditionalPanel(condition = "input.graphType == 'Sales history'",
+                                conditionalPanel(condition = "input.graphType == 'Box plot'",
                                               uiOutput("infoSale"),
                                               plotlyOutput("boxPlot"),
                                               textOutput("info"),
                                               dataTableOutput("saleSummaryTable")
                                 ),
-                                conditionalPanel(condition = "input.graphType == 'Access to subway station'",
+                                conditionalPanel(condition = "input.graphType == 'Bar plot'",
                                               plotlyOutput("barPlot"),
                                               dataTableOutput('summarytable')
                                 ),
-                                conditionalPanel(condition = "input.graphType == 'Apartment features'",
+                                conditionalPanel(condition = "input.graphType == 'Scatter plot'",
                                               uiOutput("infoNew"),
                                               plotlyOutput("scatterPlot"),
                                               dataTableOutput("numSummaryTable")
@@ -249,7 +249,7 @@ shinyUI(dashboardPage(
                                      sidebarLayout(
                                          sidebarPanel(
                                              sliderInput("proportion", "Proportion of data you want to use for training",
-                                                         min = 0.1, max = 0.9, value = 0.8, step = 0.1),
+                                                         min = 0.1, max = 0.9, value = 0.7, step = 0.1),
                                              checkboxGroupInput('predictors', h4('Select variables'),
                                                                 choices = list('sqft_size', 
                                                                                'floor',
@@ -331,7 +331,26 @@ shinyUI(dashboardPage(
                                  label = 'Option to choose columns to view', 
                                  choices = numericalVarNames, 
                                  selected = numericalVarNames
-                                 ),
+                             ),
+                             sliderInput(
+                                 inputId = 'YearBuilt1',
+                                 label = 'Option to subset rows by YearBuilt',
+                                 min = min(apartmentData$YearBuilt),
+                                 max = max(apartmentData$YearBuilt),
+                                 value = c(min(apartmentData$YearBuilt),
+                                           max(apartmentData$YearBuilt))
+                             ),
+                             sliderInput(
+                                 inputId = 'sqft_size1',
+                                 label = 'Option to subset rows by sqft_size',
+                                 min = min(apartmentData$sqft_size),
+                                 max = max(apartmentData$sqft_size),
+                                 value = c(min(apartmentData$sqft_size),
+                                           max(apartmentData$sqft_size))
+                             ),
+                             #sliderInput((
+                              #   inputId =
+                             #))
                              downloadButton('downloadData', 'Download data')
                              ),
                     
