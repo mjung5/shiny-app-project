@@ -1,4 +1,5 @@
 # shiny-app-project
+Min-Jung Jung
 
 ## Overview
 This project is to create a Shiny app to explore the Daegu real estate data.  
