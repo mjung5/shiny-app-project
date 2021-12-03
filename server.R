@@ -21,12 +21,7 @@ shinyServer(function(input, output, session) {
         ApartmentData1 <- apartmentData %>% filter(between(sqft_size, input$sqft_size1[1], input$sqft_size1[2]) & 
                                                      between(YearBuilt, input$YearBuilt1[1], input$YearBuilt1[2]))
     })
-    
-    # creates a reactive context for the data set including only selected variables for the modeling
-#    newmodelApartmentData <- reactive({
-#        getmodelapartmentData1 <- apartmentData %>%select(sqft_size,floor,N_FacilitiesInApt,sale_price)
-#    })
-    
+
     # create plots and summary tables
     
     # Histogram - Apartment price
@@ -100,7 +95,8 @@ shinyServer(function(input, output, session) {
                   )
       DT::datatable(t, caption = "Summary statistics of apartment price by access of subway station")
     })
-    # practice
+    
+    # Select variables
     scatterData <- reactive({
       data <- getApartmentData() %>% select(input$numericalVarNames)
     }) 
@@ -118,23 +114,6 @@ shinyServer(function(input, output, session) {
         ggplotly(scatterPlot)
       }
     })
-    
-    
-    
-    
-    # Scatter plot - Apartment features and facts
-#    output$scatterPlot = renderPlotly({
-#        # Geom_smooth option
-#        if(!input$geomline){
-#            scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
-#                geom_point(color="blue")
-#            ggplotly(scatterPlot)
-#        }else{
-#              scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
-#                  geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
-#              ggplotly(scatterPlot)
-#        }
-#    })
     
     # renderUI() for uiOutput("infoNew")
     output$infoNew <- renderUI({

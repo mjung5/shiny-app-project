@@ -67,7 +67,7 @@ shinyUI(dashboardPage(
                                  tags$li("The Prediction tab will allow me to predict the price of apartment for selected predictors.")
                                  ),
                             h4("Data"),
-                            "In the Data page, I will be able to view the dataset."
+                            "In the Data page, I will be able to view and download the dataset."
                             ),
                         box(
                             img(src="Daegu_apartment.jpg", height = 350, width=500, align="center")
