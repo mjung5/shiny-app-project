@@ -1,3 +1,5 @@
+library(tidyverse)
+
 daegu_real_estate_data <- read.csv("Daegu_Real_Estate_data.csv")
 
 # Column list that are not being used. 
