@@ -73,13 +73,14 @@ shinyServer(function(input, output, session) {
 
     #creates a reactive context for the data set
     getApartmentData <- reactive({
-        ApartmentData1 <- apartmentData
+        ApartmentData1 <- apartmentData %>% filter(between(sqft_size, input$sqft_size1[1], input$sqft_size1[2]) & 
+                                                     between(YearBuilt, input$YearBuilt1[1], input$YearBuilt1[2]))
     })
     
     # creates a reactive context for the data set including only selected variables for the modeling
-    newmodelApartmentData <- reactive({
-        getmodelapartmentData1 <- apartmentData %>%select(sqft_size,floor,N_FacilitiesInApt,sale_price)
-    })
+#    newmodelApartmentData <- reactive({
+#        getmodelapartmentData1 <- apartmentData %>%select(sqft_size,floor,N_FacilitiesInApt,sale_price)
+#    })
     
     # create plots and summary tables
     
@@ -154,20 +155,41 @@ shinyServer(function(input, output, session) {
                   )
       DT::datatable(t, caption = "Summary statistics of apartment price by access of subway station")
     })
+    # practice
+    scatterData <- reactive({
+      data <- getApartmentData() %>% select(input$numericalVarNames)
+    }) 
     
     # Scatter plot - Apartment features and facts
     output$scatterPlot = renderPlotly({
-        # Geom_smooth option
-        if(!input$geomline){
-            scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
-                geom_point(color="blue")
-            ggplotly(scatterPlot)
-        }else{
-              scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
-                  geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
-              ggplotly(scatterPlot)
-        }
+      # Geom_smooth option
+      if(!input$geomline){
+        scatterPlot = ggplot(scatterData(),aes_string(x=input$featuresX, y=input$featuresY))+
+          geom_point(color="blue")
+        ggplotly(scatterPlot)
+      }else{
+        scatterPlot = ggplot(scatterData(),aes_string(x=input$featuresX, y=input$featuresY))+
+          geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
+        ggplotly(scatterPlot)
+      }
     })
+    
+    
+    
+    
+    # Scatter plot - Apartment features and facts
+#    output$scatterPlot = renderPlotly({
+#        # Geom_smooth option
+#        if(!input$geomline){
+#            scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
+#                geom_point(color="blue")
+#            ggplotly(scatterPlot)
+#        }else{
+#              scatterPlot = ggplot(getApartmentData(),aes_string(x=input$featuresX, y=input$featuresY))+
+#                  geom_point(color="orange")+geom_smooth(se=TRUE, color="blue")
+#              ggplotly(scatterPlot)
+#        }
+#    })
     
     # renderUI() for uiOutput("infoNew")
     output$infoNew <- renderUI({
@@ -191,7 +213,7 @@ shinyServer(function(input, output, session) {
         
     # Correlation plot-  the correlation matrix for the numerical variables   
     output$corrplot = renderPlot({
-      df_tmp <- apartmentData %>% dplyr::select(all_of(numericalVarNames))
+      df_tmp <- getApartmentData() %>% dplyr::select(all_of(numericalVarNames))
       
       corrplot(cor(df_tmp), type = 'lower', diag = FALSE)
     })
@@ -201,10 +223,11 @@ shinyServer(function(input, output, session) {
       paste("We use this correlation plot to find the variables that are highly correlated and avoid including the variables in our model building phase.")
     })
     
+    # Modeling tab
     
     # This data will be used for running the models. Three numeric variables were selected based on the correlation plots.
     modelData <- reactive({
-      newmodelData <- getApartmentData() %>% select(sale_price, input$predictors)
+      newmodelData <- apartmentData %>% select(sale_price, input$predictors)
     })
     
     # Split data into train and test
@@ -344,7 +367,7 @@ shinyServer(function(input, output, session) {
     
     # Train data for prediction tab
     predictData <- reactive({
-      predictData <- getApartmentData() %>% select(sale_price, sqft_size, floor, N_FacilitiesInApt, accessToSubwaySTN)
+      predictData <- apartmentData %>% select(sale_price, sqft_size, floor, N_FacilitiesInApt, accessToSubwaySTN)
     })
     
     # Split data into train 
@@ -377,13 +400,12 @@ shinyServer(function(input, output, session) {
     
     # Create reactive data for data tab
     aptData <- reactive({
-        data <- apartmentData %>% filter(between(sqft_size, input$sqft_size1[1], input$sqft_size1[2]) & 
-                                           between(YearBuilt, input$YearBuilt1[1], input$YearBuilt1[2])) %>%
+        data <- apartmentData %>% filter(between(sqft_size, input$sqft_size2[1], input$sqft_size2[2]) & 
+                                           between(YearBuilt, input$YearBuilt2[1], input$YearBuilt2[2])) %>%
           select(YearSold, MonthSold, accessToSubway, accessToSubwaySTN, accessToSubway, input$numericalVarNames)
     })
 
     # Data tab
-    #output$Data <- renderDataTable(datatable(aptData(), options = list(scrollX = T)))
     output$Data <- renderDataTable({aptData()}, options = list(scrollX = '200px'))
     # Download
     output$downloadData <- downloadHandler(

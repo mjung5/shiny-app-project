@@ -1,9 +1,8 @@
 # shiny-app-project
 
 ## Overview
-This project is to create a Shiny app to explore the Daegu Apartment data. 
-Through the shiny app, you can view several summary tables and plots and fit three different models. 
-Also, you will view and download the data via several tabs. 
+This project is to create a Shiny app to explore the Daegu real estate data.  
+Through the shiny app, you can view and manipulate several summary tables and plots and fit three different models via several tabs. Also, you will view and download the data . 
 
 ## Requirements
 This project requires the following packages:

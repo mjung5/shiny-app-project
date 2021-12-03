@@ -140,7 +140,8 @@ shinyUI(dashboardPage(
                                    inputId = 'graphType',
                                    label = 'Select graph',
                                    choices = list('Histogram','Box plot', 'Bar plot', 'Scatter plot', 'Correlation plot')
-                              ),
+                                ),
+                            
                             conditionalPanel(condition = "input.graphType == 'Histogram'",
                                 selectInput(
                                     inputId = 'price',
@@ -176,6 +177,22 @@ shinyUI(dashboardPage(
                                     selected = 'sale_price'
                                     ),
                                 checkboxInput('geomline', 'Add a scatter line to the plot.')
+                            ),
+                            sliderInput(
+                                inputId = 'YearBuilt1',
+                                label = 'Filter the data by YearBuilt',
+                                min = min(apartmentData$YearBuilt),
+                                max = max(apartmentData$YearBuilt),
+                                value = c(min(apartmentData$YearBuilt),
+                                          max(apartmentData$YearBuilt))
+                            ),
+                            sliderInput(
+                                inputId = 'sqft_size1',
+                                label = 'Filter the data by sqft_size',
+                                min = min(apartmentData$sqft_size),
+                                max = max(apartmentData$sqft_size),
+                                value = c(min(apartmentData$sqft_size),
+                                          max(apartmentData$sqft_size))
                             )),
                          
                             mainPanel(
@@ -333,7 +350,7 @@ shinyUI(dashboardPage(
                                  selected = numericalVarNames
                              ),
                              sliderInput(
-                                 inputId = 'YearBuilt1',
+                                 inputId = 'YearBuilt2',
                                  label = 'Option to subset rows by YearBuilt',
                                  min = min(apartmentData$YearBuilt),
                                  max = max(apartmentData$YearBuilt),
@@ -341,16 +358,13 @@ shinyUI(dashboardPage(
                                            max(apartmentData$YearBuilt))
                              ),
                              sliderInput(
-                                 inputId = 'sqft_size1',
+                                 inputId = 'sqft_size2',
                                  label = 'Option to subset rows by sqft_size',
                                  min = min(apartmentData$sqft_size),
                                  max = max(apartmentData$sqft_size),
                                  value = c(min(apartmentData$sqft_size),
                                            max(apartmentData$sqft_size))
                              ),
-                             #sliderInput((
-                              #   inputId =
-                             #))
                              downloadButton('downloadData', 'Download data')
                              ),
                     
