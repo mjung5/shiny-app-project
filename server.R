@@ -121,11 +121,6 @@ shinyServer(function(input, output, session) {
       h3(text)
     })
 
-    # Create reactive data for numerical summary
-    summaryData <- reactive({
-      data <- getApartmentData() %>% select(input$numericalVarNames)
-    }) 
-    
     # Numerical summary tables for numerical variables for Apartment features option
     output$numSummaryTable <- renderDataTable({
       m <- descr(scatterData(), stats = c("mean", "sd", "min", "q1", "med", "q3", "max", "iqr"), round.digits = st_options("round.digits"), order = "preserve",
