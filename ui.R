@@ -46,7 +46,9 @@ shinyUI(dashboardPage(
                             "This data provide the traded apartment information in one district of South Korea over 10 years and contains 5391 instances with 30 variables.
                             Particulary, the data provide sales history of apartments, accessibility of public transporation, and apartment facts and features. ", 
                             br(),
-                            "The apartment data was obtained from Kaggle.",
+                            "In this project, I selected a subset of variables from the data and manipulated them for the EDA and modeling.",
+                            br(),
+                            "The Daegu real estate data was obtained from Kaggle.",
                             br(),
                             a("Click here to go to the Kaggle website to view he apartment data", href="https://www.kaggle.com/gunhee/koreahousedata")
                         ),
