@@ -2,7 +2,7 @@
 Min-Jung Jung
 
 ## Overview
-This project is to create a Shiny app to explore the Daegu real estate data.  
+This project is to create a Shiny app to explore the Apartment data in Daegu, South Korea.  
 Through the shiny app, you can view and manipulate several summary tables and plots and fit three different models via several tabs. Also, you will view and download the data . 
 
 ## Requirements
