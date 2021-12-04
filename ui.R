@@ -48,9 +48,9 @@ shinyUI(dashboardPage(
                             br(),
                             "In this project, I selected a subset of variables from the data and manipulated them for the EDA and modeling.",
                             br(),
-                            "The Daegu real estate data was obtained from Kaggle.",
+                            "The apartment data was obtained from Kaggle.",
                             br(),
-                            a("Click here to go to the Kaggle website to view he apartment data", href="https://www.kaggle.com/gunhee/koreahousedata")
+                            a("Click here to go to the Kaggle website to view the apartment data", href="https://www.kaggle.com/gunhee/koreahousedata")
                         ),
                         box(
                             h3("The purpose of each tab(page)"),
