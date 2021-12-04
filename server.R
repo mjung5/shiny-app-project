@@ -128,7 +128,7 @@ shinyServer(function(input, output, session) {
     
     # Numerical summary tables for numerical variables for Apartment features option
     output$numSummaryTable <- renderDataTable({
-      m <- descr(summaryData(), stats = c("mean", "sd", "min", "q1", "med", "q3", "max", "iqr"), round.digits = st_options("round.digits"), order = "preserve",
+      m <- descr(scatterData(), stats = c("mean", "sd", "min", "q1", "med", "q3", "max", "iqr"), round.digits = st_options("round.digits"), order = "preserve",
                  transpose = FALSE)
       class(m) <- "matrix"
       m %>% as_tibble(rownames="Statistic")
