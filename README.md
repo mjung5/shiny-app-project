@@ -37,4 +37,6 @@ install.packages("randomForest")
 
 ## Code to run shiny app
 
+```
 shiny::runGitHub("mjung5/shiny-app-project", ref="main")
+```
