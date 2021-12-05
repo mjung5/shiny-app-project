@@ -31,6 +31,7 @@ shinyUI(dashboardPage(
     # Dashboard Body set up
     dashboardBody(
         tabItems(
+            # About tab
             tabItem(tabName = "About",
                     h2("Apartment Data"),
                     fluidRow(
@@ -76,7 +77,7 @@ shinyUI(dashboardPage(
                         )
                     )
             ),
-            
+            # Data exploration tab
             tabItem(tabName = "DataExploration",
                    h2("Data Exploration Page"),
                    fluidPage(
@@ -88,7 +89,7 @@ shinyUI(dashboardPage(
                                    label = 'Select graph',
                                    choices = list('Histogram','Box plot', 'Bar plot', 'Scatter plot', 'Correlation plot')
                                 ),
-                            
+                            # ConditionalPanel for different plots
                             conditionalPanel(condition = "input.graphType == 'Histogram'",
                                 selectInput(
                                     inputId = 'price',
@@ -125,6 +126,7 @@ shinyUI(dashboardPage(
                                     ),
                                 checkboxInput('geomline', 'Add a scatter line to the plot.')
                             ),
+                            # Filter the rows to change the data by variables
                             sliderInput(
                                 inputId = 'YearBuilt1',
                                 label = 'Filter the data by YearBuilt',
@@ -141,11 +143,12 @@ shinyUI(dashboardPage(
                                 value = c(min(apartmentData$sqft_size),
                                           max(apartmentData$sqft_size))
                             )),
-                         
+                            # Setting up mainPanel
                             mainPanel(
                                 conditionalPanel(condition = "input.graphType == 'Histogram'",
                                                  plotlyOutput("histogram")
                                 ),
+                                # uiOutput 
                                 conditionalPanel(condition = "input.graphType == 'Box plot'",
                                               uiOutput("infoSale"),
                                               plotlyOutput("boxPlot"),
@@ -168,10 +171,11 @@ shinyUI(dashboardPage(
                             )
                          ))
                    ),
-           
+            # Modeling tab
             tabItem(tabName = 'Modeling',
                     fluidPage(
                         tabsetPanel(
+                            # Modeling Info tab
                             tabPanel("Modeling Info",
                                      fluidRow(
                                          box(
@@ -208,7 +212,7 @@ shinyUI(dashboardPage(
                                          )
                                      )
                             ),
-                            
+                            # Modeling fitting tab
                             tabPanel("Modeling Fitting",
                                      sidebarLayout(
                                          sidebarPanel(
@@ -226,12 +230,14 @@ shinyUI(dashboardPage(
                                                  choices = c('5','10'),
                                                  selected = '5'),  
                                              checkboxInput('interaction', strong('Option to add interactions for Multiple linear regression model')),
+                                             # Model fit- train data
                                              actionButton("reportTrain","Fit models on training data"),
+                                             # compare to test data
                                              conditionalPanel(condition = "input.reportTrain ==1",
                                                               actionButton("reportTest","Compare: Fit models on test data")
                                              )
                                          ),
-
+                                         # Display outcomes for the model fit
                                          mainPanel(
                                              h4(strong("Multiple Linear Regression model")),
                                              tableOutput("mlrmodelfit"),
@@ -258,9 +264,10 @@ shinyUI(dashboardPage(
                                              tableOutput("rfmodelTest")
                                          )
                                     )),
-                            
+                            # Prediction tab
                             tabPanel("Prediction",
                                      sidebarLayout(
+                                         # Options for variables
                                          sidebarPanel(
                                              sliderInput("sqft_sizeinput", "Select a value for sqft_size", 
                                                          min = 100, max=2500, step = 10, value = 1000),
@@ -272,7 +279,7 @@ shinyUI(dashboardPage(
                                                          min=0, max =27, step = 1, value = 5),
                                              actionButton("prediction","Predict")  
                                          ),
-                                         
+                                         # Output for the prediction
                                          mainPanel(
                                              h3('Make a prediction using the Random forest model.'),
                                              br(),
@@ -283,19 +290,21 @@ shinyUI(dashboardPage(
                         
                    ))
             ),
-                      
+            # Data tab          
             tabItem(tabName = 'Data',
                     fluidPage(
                          titlePanel("Data"),
                          h4('Apartment dataset'),
                          sidebarLayout(
                            sidebarPanel(
+                             # Select columns  
                              checkboxGroupInput(
                                  inputId = 'numericalVarNames', 
                                  label = 'Option to choose columns to view', 
                                  choices = numericalVarNames, 
                                  selected = numericalVarNames
                              ),
+                             # Select rows
                              sliderInput(
                                  inputId = 'YearBuilt2',
                                  label = 'Option to subset rows by YearBuilt',
@@ -312,9 +321,10 @@ shinyUI(dashboardPage(
                                  value = c(min(apartmentData$sqft_size),
                                            max(apartmentData$sqft_size))
                              ),
+                             # Download
                              downloadButton('downloadData', 'Download data')
                              ),
-                    
+                         # Data table
                          mainPanel(
                              dataTableOutput(outputId = 'Data')
                     )
