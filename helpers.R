@@ -36,7 +36,7 @@ accessToSubSt <- function(dataset){
            "accessToSubwaySTN" = if_else(accessToSubway == '0-5min', "Very near",
                                          if_else(accessToSubway == '5min~10min', "Near", 
                                                  if_else(accessToSubway == '10min~15min', "Moderate",
-                                                         if_else(accessToSubway == '15min~20min', "Far", "Not available"))))
+                                                         if_else(accessToSubway == '15min~20min', "Far", "No station"))))
     )            
   return(dataset)
 }
@@ -50,7 +50,7 @@ apartmentData$MonthSold <- as.factor(apartmentData$MonthSold)
 
 # Use ordered function on a factor to order the levels
 apartmentData$accessToSubwaySTN <- ordered(apartmentData$accessToSubwaySTN, 
-                                           levels = c("Very near", "Near", "Moderate", "Far", "Not available"))
+                                           levels = c("Very near", "Near", "Moderate", "Far", "No station"))
 apartmentData$MonthSold <- ordered(apartmentData$MonthSold, levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 # Subset variables

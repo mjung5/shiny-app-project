@@ -218,7 +218,7 @@ shinyUI(dashboardPage(
                                                                 choices = list('sqft_size', 
                                                                                'floor',
                                                                                'N_FacilitiesInApt',
-                                                                               'accessToSubwaySTN'),
+                                                                               'N_elevators'),
                                                                 selected = 'sqft_size'),
                                              selectInput(
                                                  inputId = 'numcv', 
@@ -228,15 +228,15 @@ shinyUI(dashboardPage(
                                              checkboxInput('interaction', strong('Option to add interactions for Multiple linear regression model')),
                                              actionButton("reportTrain","Fit models on training data"),
                                              conditionalPanel(condition = "input.reportTrain ==1",
-                                                              actionButton("reportTest","Fit models on test data")
+                                                              actionButton("reportTest","Compare: Fit models on test data")
                                              )
                                          ),
 
                                          mainPanel(
                                              h4(strong("Multiple Linear Regression model")),
                                              tableOutput("mlrmodelfit"),
-                                             h5("ANOVA table from Multiple Linear Regression model"),
-                                             tableOutput("summaryMLRTable"),
+                                             h5("Summary table from Multiple Linear Regression model"),
+                                             verbatimTextOutput("summaryMLRTable"),
                                              br(),
                                              h4(strong("Regression Tree model")),
                                              verbatimTextOutput("rtmodelfit"),
@@ -268,8 +268,8 @@ shinyUI(dashboardPage(
                                                          min = 1.0, max = 43, step =1, value = 30),
                                              sliderInput("N_FacilitiesInAptinput", "Select a value for N_FacilitiesInApt",
                                                          min=1, max=10, step = 1, value = 3),
-                                             selectInput("subwaySTNinput", "Select a value for access to subway station",
-                                                        choices =c("Very near","Near", "Moderate", "Far", "Not available")),
+                                             sliderInput("N_elevatorsinput", "Select a value for N_elevators",
+                                                         min=0, max =27, step = 1, value = 5),
                                              actionButton("prediction","Predict")  
                                          ),
                                          

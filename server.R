@@ -192,21 +192,14 @@ shinyServer(function(input, output, session) {
                  })
     )
     
-    # ANOVA table for multiple linear regression outcome
+    # Summary table for multiple linear regression outcome
+
     observeEvent(input$reportTrain,
-                 output$summaryMLRTable <- renderTable(
-                  
-                 as.data.frame(anova(lm(if(!input$interaction){
-                                            sale_price ~ .
-                                         }else{
-                                             sale_price ~ .*.
-                                          }, 
-                                        data = traindata()
-                                        )
-                                     )
-                 )
-    ))
-    
+                 output$summaryMLRTable <- renderPrint({
+                   summary(mlrFit())
+                 })
+    )
+
     # Regression tree model
     rtmFit <- reactive({      
       set.seed(123)
@@ -286,7 +279,7 @@ shinyServer(function(input, output, session) {
     
     # Train data for prediction tab
     predictData <- reactive({
-      predictData <- apartmentData %>% select(sale_price, sqft_size, floor, N_FacilitiesInApt, accessToSubwaySTN)
+      predictData <- apartmentData %>% select(sale_price, sqft_size, floor, N_FacilitiesInApt, N_elevators)
     })
     
     # Split data into train 
@@ -304,14 +297,14 @@ shinyServer(function(input, output, session) {
     observeEvent(input$prediction,
                 output$PredictClick <- renderText({
                   withProgress(message = "In progress", value = NULL,{
-                  rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt, data = traindata1(),
+                  rfmodelFit <- train(sale_price ~ sqft_size + floor + N_FacilitiesInApt + N_elevators, data = traindata1(),
                                       method = "rf", preProcess = c("center", "scale"), trControl = trainControl(method = "cv", number = 5),tuneGrid = data.frame(mtry = (1:4)) )  
                   
                   predict(rfmodelFit, newdata = data.frame(
                       sqft_size = isolate(input$sqft_sizeinput),
                       floor = isolate(input$floorinput),
                       N_FacilitiesInApt = isolate(input$N_FacilitiesInAptinput), 
-                      accessToSubwaySTN = isolate(input$subwaySTNinput)
+                      N_elevators = isolate(input$N_elevatorsinput)
                   ))
                   }) 
                 })
